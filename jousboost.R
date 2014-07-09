@@ -47,7 +47,7 @@ for (i in 1:ntest){
 
 
 
-jb = jousboost(x, y, num_iter = 250)
+jb = jousboost(x, y, type = "over", num_iter = 250)
 
 jousboost = function(X, y, type = "under", num_iter = 100, delta = 10, nu = 1, tree_depth = 3){
   ##check if y is +-1 
@@ -58,6 +58,7 @@ jousboost = function(X, y, type = "under", num_iter = 100, delta = 10, nu = 1, t
   
   ##basic info
   n = length(y)
+  p = ncol(x)
   ix_pos = y == 1
   ix_neg = y == -1
   num_pos = sum(ix_pos)
@@ -72,28 +73,67 @@ jousboost = function(X, y, type = "under", num_iter = 100, delta = 10, nu = 1, t
   cut_pos = round(num_pos / num_cuts, 0)
   cut_neg = round(num_neg / num_cuts, 0)
   
-  
-  ##set up for undersampled jousboost
+  ##set up info for over/undersampling
   data_sets = list()
   median_cut = median(1 : num_cuts)
-  for(cut in 1 : num_cuts){ ## 1 corresponds to all of the negative data so its the 90th quantile cut
-    if(cut == median_cut){
-      x_temp = X
-      y_temp = y
-    }else{
-      pos_iter = cut * cut_pos
-      neg_iter = (delta - cut) * cut_neg
-      if(cut == 1){
-        neg_iter = num_neg
-      }else if(cut == num_cuts){
-        pos_iter = num_pos
-      } 
-      x_temp = rbind(xpos[1 : pos_iter, ], xneg[1 : neg_iter, ])
-      y_temp = c(ypos[1 : pos_iter], yneg[1: neg_iter])
-    }
-    data_sets[[cut]] = list(x  = x_temp, y = y_temp)
-  }
   
+  if(type == "over"){
+    ##set up jittering
+    jitter_pos = sapply(1 : p, function(s) sqrt(var(x[,s]))*nu*runif((num_cuts - 1) * num_pos, -1, 1)) ##only need n - of repeats to be jittered
+    jitter_neg = sapply(1 : p, function(s) sqrt(var(x[,s]))*nu*runif((num_cuts - 1) * num_neg, -1, 1)) ##only need n - of repeats to be jittered
+    
+    for(cut in 1 : num_cuts){
+      ##start with 1 replicate -- 10% is 9 -1's and 1 1's
+      pos_replicates = cut - 1
+      neg_replicates = num_cuts - cut
+      
+      x_temp = x
+      y_temp = y
+      if(neg_replicates > 0){
+        ##augment some negative replicates
+        for(j in 1 : neg_replicates){
+          x_temp = rbind(x_temp, xneg)
+          y_temp = c(y_temp, yneg)
+        }
+      }
+      if(pos_replicates > 0){
+        ##augment some positive replicates
+        for(j in 1 : pos_replicates){
+          x_temp = rbind(x_temp, xpos)
+          y_temp = c(y_temp, ypos)
+        }
+      }
+      ##add the noise
+      if(cut == 1){
+        x_jit = sapply(1 : p, function(s) x_temp[,s] + c(rep(0,n), jitter_neg[,s]))
+      }else if(cut == num_cuts){
+        x_jit = sapply(1 : p, function(s) x_temp[,s] + c(rep(0,n), jitter_pos[,s]))
+      }else{
+        x_jit = sapply(1 : p, function(s) x_temp[,s] + c(rep(0,n), 
+        jitter_neg[1 : (neg_replicates * num_neg) , s], jitter_pos[1 : (pos_replicates * num_pos) , s]))  
+      }
+      
+      data_sets[[cut]] = list(x = x_jit, y = y_temp)
+    } 
+  }else{ ##undersample
+    for(cut in 1 : num_cuts){ ## 1 corresponds to all of the negative data so its the 90th quantile cut
+      if(cut == median_cut){
+        x_temp = X
+        y_temp = y
+      }else{
+        pos_iter = cut * cut_pos
+        neg_iter = (delta - cut) * cut_neg
+        if(cut == 1){
+          neg_iter = num_neg
+        }else if(cut == num_cuts){
+          pos_iter = num_pos
+        } 
+        x_temp = rbind(xpos[1 : pos_iter, ], xneg[1 : neg_iter, ])
+        y_temp = c(ypos[1 : pos_iter], yneg[1: neg_iter])
+      }
+      data_sets[[cut]] = list(x  = x_temp, y = y_temp)
+    }
+  }
   
   #do the boosting on each data set here
   out_list = list()
@@ -209,14 +249,6 @@ get_gridded_prob = function(obs_vec, delta){
   }
   phat
 }
-
-# get_gridded_prob = function(obs_vec, delta){
-#   median_col = median(1 : (delta - 1))
-#   if(obs_vec[median_col] < 0){
-#     ix_to_check = (median_col + 1) : length(obs_vec)
-#     sum()
-#   
-# }
 
 
 ####
