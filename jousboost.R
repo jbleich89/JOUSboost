@@ -84,37 +84,41 @@ jousboost = function(X, y, type = "under", num_iter = 100, delta = 10, nu = 1, t
     
     for(cut in 1 : num_cuts){
       ##start with 1 replicate -- 10% is 9 -1's and 1 1's
-      pos_replicates = cut - 1
-      neg_replicates = num_cuts - cut
-      
-      x_temp = x
-      y_temp = y
-      if(neg_replicates > 0){
-        ##augment some negative replicates
-        for(j in 1 : neg_replicates){
-          x_temp = rbind(x_temp, xneg)
-          y_temp = c(y_temp, yneg)
-        }
-      }
-      if(pos_replicates > 0){
-        ##augment some positive replicates
-        for(j in 1 : pos_replicates){
-          x_temp = rbind(x_temp, xpos)
-          y_temp = c(y_temp, ypos)
-        }
-      }
-      ##add the noise
-      if(cut == 1){
-        x_jit = sapply(1 : p, function(s) x_temp[,s] + c(rep(0,n), jitter_neg[,s]))
-      }else if(cut == num_cuts){
-        x_jit = sapply(1 : p, function(s) x_temp[,s] + c(rep(0,n), jitter_pos[,s]))
+      if(cut == median_cut){
+          x_jit = x
+          y_temp = y
       }else{
-        x_jit = sapply(1 : p, function(s) x_temp[,s] + c(rep(0,n), 
-        jitter_neg[1 : (neg_replicates * num_neg) , s], jitter_pos[1 : (pos_replicates * num_pos) , s]))  
-      }
-      
-      data_sets[[cut]] = list(x = x_jit, y = y_temp)
-    } 
+        pos_replicates = cut - 1
+        neg_replicates = num_cuts - cut
+        
+        x_temp = x
+        y_temp = y
+        if(neg_replicates > 0){
+          ##augment some negative replicates
+          for(j in 1 : neg_replicates){
+            x_temp = rbind(x_temp, xneg)
+            y_temp = c(y_temp, yneg)
+          }
+        }
+        if(pos_replicates > 0){
+          ##augment some positive replicates
+          for(j in 1 : pos_replicates){
+            x_temp = rbind(x_temp, xpos)
+            y_temp = c(y_temp, ypos)
+          }
+        }
+        ##add the noise
+        if(cut == 1){
+          x_jit = sapply(1 : p, function(s) x_temp[,s] + c(rep(0,n), jitter_neg[,s]))
+        }else if(cut == num_cuts){
+          x_jit = sapply(1 : p, function(s) x_temp[,s] + c(rep(0,n), jitter_pos[,s]))
+        }else{
+          x_jit = sapply(1 : p, function(s) x_temp[,s] + c(rep(0,n), 
+                                                           jitter_neg[1 : (neg_replicates * num_neg) , s], jitter_pos[1 : (pos_replicates * num_pos) , s]))  
+        }
+      } 
+      data_sets[[cut]] = list(x = x_jit, y = y_temp) 
+    }
   }else{ ##undersample
     for(cut in 1 : num_cuts){ ## 1 corresponds to all of the negative data so its the 90th quantile cut
       if(cut == median_cut){
