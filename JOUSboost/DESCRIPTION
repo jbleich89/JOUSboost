@@ -1,0 +1,14 @@
+Package: JOUSboost
+Type: Package
+Title: JOUS-Boost for Conditional Class Probability Estimation
+Version: 1.0
+Date: 2014-7-10
+Author: Justin Bleich and Adam Kapelner
+Maintainer: Justin Bleich <jbleich@wharton.upenn.edu>
+Description: A implementation of the JOUS-Boost algorithm proposed in Mease et al. (2007)
+    and classification
+License: MIT + file LICENSE
+Depends:
+    R (>= 3.0),
+    rpart,
+    doParallel
