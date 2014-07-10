@@ -1,4 +1,4 @@
-library(rpart)
+library(JOUSboost)
 set.seed(888, kind = NULL)
 n<-500
 d = 10
@@ -45,10 +45,11 @@ for (i in 1:ntest){
     ( 1+exp( coe*sum(xtest[i,1:6])*(1-xtest[i,1]+xtest[i,2]-xtest[i,3]+xtest[i,4]-xtest[i,5]+xtest[i,6])))
 }
 
-jb = JOUSboost(x, y, type = "over", num_iter = 250)
+jb = JOUSboost(x, y, type = "under", num_iter = 250)
+object.size(jb)/10^9
 object = jb
 newdata = xtest
-phats = predict.JOUSboost(object, newdata)
+phats = predict(jb, xtest)
 sum(abs(phats - ptest)^2/2500)
 head(ptest)
 head(phats)

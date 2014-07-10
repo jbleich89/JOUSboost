@@ -24,7 +24,7 @@ adaboost_v1 = function(x, y, num_iter, tree_depth, verbose){
     alpha = .5 * log( (t - e) / e)
     f = f + alpha * pred_classes
     
-    ada_list[[iter]] = list(tree_mod = tree_mod, f = f, alpha = alpha)  ##storage for forecasting later
+    ada_list[[iter]] = list(tree_mod = tree_mod, alpha = alpha)  ##storage for forecasting later
     if(verbose & iter %% 10 == 0) cat(paste(iter,""))
   }
   ada_list
@@ -62,7 +62,7 @@ adaboost_v2 = function(x, y, num_iter, tree_depth, verbose){
     weights = weights/sum(weights)
     
     
-    ada_list[[iter]] = list(tree_mod = tree_mod, f = f, alpha = alpha)  ##storage for forecasting later
+    ada_list[[iter]] = list(tree_mod = tree_mod, alpha = alpha)  ##storage for forecasting later
     if(verbose & iter %% 10 == 0) cat(paste(iter,""))
   }
   ada_list

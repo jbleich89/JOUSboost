@@ -1,4 +1,4 @@
-predict.JOUSboost = function(object, newdata){
+predict.JOUSboost = function(object, newdata, ...){
   ##first compute the boosted output -- then compute the probability 
   num_cuts = object$delta - 1
   preds = matrix(NA, nrow = nrow(newdata), ncol = num_cuts) ##matrix of full set of predicted values
@@ -7,9 +7,11 @@ predict.JOUSboost = function(object, newdata){
     f = numeric(nrow(newdata))
     
     for(iter in 1:object$num_iter){
+      object[[i]][[iter]]$tree_mod$terms = object$rpart_formula
       tree_preds = predict(object[[i]][[iter]]$tree_mod, data.frame(newdata), type = "prob") ##predict
       pred_classes = -1 + 2 * (tree_preds[ ,1] > tree_preds[ ,2]) ##convert to -1/1
       f = f + object[[i]][[iter]]$alpha * pred_classes ##do update based on training
+      object[[i]][[iter]]$tree_mod$terms = NULL
     }
     
     preds[ ,i] = f

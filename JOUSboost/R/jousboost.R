@@ -14,7 +14,7 @@ JOUSboost = function(X, y,
   
   ##basic info
   n = length(y)
-  p = ncol(x)
+  p = ncol(X)
   ix_pos = y == 1
   ix_neg = y == -1
   num_pos = sum(ix_pos)
@@ -97,7 +97,7 @@ JOUSboost = function(X, y,
   
   #do the boosting on each data set here
   boost_list = list()
-    
+  rpart_formula = NA  
   ##Run the grid
   for(i in 1 : num_cuts){
    if(verbose) cat(paste("Cut Point:", i, "Iter: "))
@@ -106,8 +106,14 @@ JOUSboost = function(X, y,
     y = data_sets[[i]]$y
     x = data_sets[[i]]$x
        
-    boost_list[[i]] = adaboost_v1(x = x, y = y, num_iter = num_iter, 
+    boost_list[[i]] = adaboost_v2(x = x, y = y, num_iter = num_iter, 
                                   tree_depth = tree_depth, verbose = verbose)
+   
+   ##Kill all the formulas because they waste a lot of memory. 
+   if(i == 1) rpart_formula = boost_list[[i]][[1]]$tree_mod$terms
+   for(j in 1 : num_iter){
+     boost_list[[i]][[j]]$tree_mod$terms = NULL
+   }
 
     if(verbose) cat("\n")
   }
@@ -117,6 +123,6 @@ JOUSboost = function(X, y,
   boost_list[["delta"]] = delta
   boost_list[["nu"]] = nu
   boost_list[["tree_depth"]] = tree_depth
-  
+  boost_list[["rpart_formula"]] = rpart_formula
   boost_list 
 }
