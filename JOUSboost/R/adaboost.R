@@ -31,10 +31,6 @@ adaboost_v1 = function(x, y, num_iter, tree_depth, verbose){
 }
 
 
-
-
-
-
 adaboost_v2 = function(x, y, num_iter, tree_depth, verbose){
   f = numeric(length(y))
   ada_list = list()

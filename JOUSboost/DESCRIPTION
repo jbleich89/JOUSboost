@@ -10,5 +10,6 @@ Description: A implementation of the JOUS-Boost algorithm proposed in Mease et a
 License: MIT + file LICENSE
 Depends:
     R (>= 3.0),
+    ada,
     rpart,
     doParallel

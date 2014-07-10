@@ -2,7 +2,9 @@ predict.JOUSboost = function(object, newdata, ...){
   ##first compute the boosted output -- then compute the probability 
   num_cuts = object$delta - 1
   preds = matrix(NA, nrow = nrow(newdata), ncol = num_cuts) ##matrix of full set of predicted values
+  if(object$verbose) cat("Predicting for Cut: ")
   for(i in 1 : num_cuts){
+    if(object$verbose) cat(i, " ")
     ##go over iterations
     f = numeric(nrow(newdata))
     
@@ -15,6 +17,7 @@ predict.JOUSboost = function(object, newdata, ...){
     }
     
     preds[ ,i] = f
+    if(verbose) cat("\n")
   }
   ##post-process results 
   phats = apply(preds, 1, get_gridded_prob, delta = object$delta)
